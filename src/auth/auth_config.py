@@ -2,10 +2,10 @@ from fastapi_users.authentication import CookieTransport, JWTStrategy, Authentic
 from fastapi_users import FastAPIUsers
 
 from src.config import SECRET
-from .models import User
-from .manager import get_user_manager
+from src.auth.models import User
+from src.auth.manager import get_user_manager
 
-cookie_transport = CookieTransport(cookie_name='site-telegram-bot', cookie_max_age=3600)
+cookie_transport = CookieTransport(cookie_name='api-site-telegram-bot', cookie_max_age=3600)
 
 
 def get_jwt_strategy() -> JWTStrategy:

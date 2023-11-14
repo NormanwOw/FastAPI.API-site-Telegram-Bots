@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Request, status, Depends
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from src.auth.models import User
-from src.auth.auth_config import auth_backend, current_user, fastapi_users
+from src.auth.auth_config import auth_backend, fastapi_users
 from src.auth.schemas import UserRead, UserCreate
-
+from .ordering.router import router as order_router
 
 app = FastAPI(
     title='API Telegram bots'
@@ -14,29 +13,23 @@ app = FastAPI(
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/auth",
-    tags=["auth"],
+    tags=["Auth"],
 )
 
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
     prefix="/auth",
-    tags=["auth"],
+    tags=["Auth"],
 )
 
-
-@app.get("/protected-route")
-def protected_route(user: User = Depends(current_user)):
-    return f"Hello, {user.email}"
-
-
-@app.get("/unprotected-route")
-def unprotected_route():
-    return f"Hello, anonym"
+app.include_router(
+    order_router
+)
 
 
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # Get the original 'detail' list of errors
+
     details = exc.errors()[0]
     if details['type'] == 'string_pattern_mismatch':
         details['msg'] = "Phone should match '+7(9##)#######'"
