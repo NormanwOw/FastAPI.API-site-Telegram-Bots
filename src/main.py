@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+
 from src.auth.auth_config import auth_backend, fastapi_users
 from src.auth.schemas import UserRead, UserCreate
-from .ordering.router import router as order_router
+from src.ordering.router import router as order_router
+from src.users.router import router as user_router
+from src.config import VERSION
 
 app = FastAPI(
     title='API Telegram bots'
@@ -12,18 +15,22 @@ app = FastAPI(
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth",
-    tags=["Auth"],
+    prefix=f'/api/{VERSION}/auth',
+    tags=['Auth'],
 )
 
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["Auth"],
+    prefix=f'/api/{VERSION}/auth',
+    tags=['Auth'],
 )
 
 app.include_router(
     order_router
+)
+
+app.include_router(
+    user_router
 )
 
 

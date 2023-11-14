@@ -2,12 +2,13 @@ from datetime import datetime
 from random import randint
 
 from sqlalchemy import insert, select
+
 from src.database import async_session
 from src.ordering.models import Order
 from src.auth.models import User
 
 
-class OrderORM:
+class OrdersORM:
 
     @classmethod
     async def new_order(cls, user, order) -> dict:
@@ -41,5 +42,6 @@ class OrderORM:
                 query = select(Order).where(Order.email == user.email).limit(limit).offset(offset)
 
             result = await session.execute(query)
+
             return result.scalars().all()
 
