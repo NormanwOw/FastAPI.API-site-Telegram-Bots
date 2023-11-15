@@ -18,21 +18,3 @@ class UsersORM:
                 del item['hashed_password']
 
             return result
-
-    @classmethod
-    async def get_user(cls, user_id: int) -> dict:
-        async with async_session() as session:
-
-            query = select(User).where(User.id == user_id)
-            resp = await session.execute(query)
-            result = jsonable_encoder(resp.scalar())
-            del result['hashed_password']
-
-            return result
-
-    @classmethod
-    async def delete_user(cls, user_id: int) -> None:
-        async with async_session() as session:
-            stmt = delete(User).where(User.id == user_id)
-            await session.execute(stmt)
-            await session.commit()

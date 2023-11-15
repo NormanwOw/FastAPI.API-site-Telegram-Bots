@@ -2,6 +2,7 @@ from datetime import datetime
 from random import randint
 
 from sqlalchemy import insert, select
+from fastapi.encoders import jsonable_encoder
 
 from src.database import async_session
 from src.ordering.models import Order
@@ -41,7 +42,19 @@ class OrdersORM:
             else:
                 query = select(Order).where(Order.email == user.email).limit(limit).offset(offset)
 
-            result = await session.execute(query)
+            resp = await session.execute(query)
 
-            return result.scalars().all()
+            return resp.scalars().all()
 
+    @classmethod
+    async def get_order_by_id(cls, order_id: int, user: User) -> list:
+        async with async_session() as session:
+            if user.is_superuser:
+                query = select(Order).where(Order.order_id == order_id)
+            else:
+                query = select(Order).where(Order.order_id == order_id, Order.email == user.email)
+
+            resp = await session.execute(query)
+            result = jsonable_encoder(resp.scalar())
+
+            return result

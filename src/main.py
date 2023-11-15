@@ -3,9 +3,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from src.auth.auth_config import auth_backend, fastapi_users
-from src.auth.schemas import UserRead, UserCreate
+from src.auth.schemas import UserRead, UserCreate, UserUpdate
 from src.ordering.router import router as order_router
-from src.users.router import router as user_router
+from src.users.router import router as users_router
 from src.config import VERSION
 
 app = FastAPI(
@@ -19,6 +19,7 @@ app.include_router(
     tags=['Auth'],
 )
 
+
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
     prefix=f'/api/{VERSION}/auth',
@@ -26,11 +27,17 @@ app.include_router(
 )
 
 app.include_router(
-    order_router
+    users_router
 )
 
 app.include_router(
-    user_router
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix=f'/api/{VERSION}/users',
+    tags=['Users'],
+)
+
+app.include_router(
+    order_router
 )
 
 

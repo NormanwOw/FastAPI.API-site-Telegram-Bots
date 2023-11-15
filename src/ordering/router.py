@@ -10,14 +10,22 @@ from src.config import VERSION
 
 router = APIRouter(
     prefix=f'/api/{VERSION}/orders',
-    tags=['Order']
+    tags=['Orders']
 )
 
 
 @router.get('/')
 async def get_orders(limit: int, offset: int, user: User = Depends(current_user)):
     response = await OrdersORM.get_orders(limit, offset, user)
+
     return JSONResponse(jsonable_encoder(response), status_code=200)
+
+
+@router.get('/{order_id}', status_code=404)
+async def get_order_by_id(order_id: int, user: User = Depends(current_user)):
+    response = await OrdersORM.get_order_by_id(order_id, user)
+    if response:
+        return JSONResponse(response, status_code=200)
 
 
 @router.post('/')

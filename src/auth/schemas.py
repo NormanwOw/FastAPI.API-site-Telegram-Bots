@@ -23,3 +23,8 @@ class UserCreate(schemas.BaseUserCreate):
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     is_verified: Optional[bool] = False
+
+
+class UserUpdate(schemas.BaseUserUpdate):
+    email: EmailStr
+    phone_number: str = Field(pattern='^[+]7\(9[0-9]{2}\)[0-9]{7}')
