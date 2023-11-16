@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Integer, String, TIMESTAMP, Boolean, Column
 
-from src.database import Base
+from src.session import Base
 
 
 class Order(Base):
@@ -17,3 +17,11 @@ class Order(Base):
     database: bool = Column(Boolean, nullable=False)
     total_price: int = Column(Integer, nullable=False)
     date: TIMESTAMP = Column(TIMESTAMP, nullable=False, default=datetime.utcnow)
+
+
+class Product(Base):
+    __tablename__ = 'product'
+
+    id: int = Column(Integer, primary_key=True)
+    product: str = Column(String, nullable=False)
+    price: int = Column(Integer, nullable=False)

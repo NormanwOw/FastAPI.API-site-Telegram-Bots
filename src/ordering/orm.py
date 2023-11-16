@@ -4,27 +4,54 @@ from random import randint
 from sqlalchemy import insert, select
 from fastapi.encoders import jsonable_encoder
 
-from src.database import async_session
-from src.ordering.models import Order
+from src.session import async_session
+from src.ordering.models import Order, Product
+from src.ordering.schemas import NewOrder
 from src.auth.models import User
+from src.database import orders
+from src.tasks.tasks import send_email
 
 
 class OrdersORM:
 
     @classmethod
-    async def new_order(cls, user, order) -> dict:
+    async def new_order(cls, user: User, new_order: NewOrder) -> dict:
         async with async_session() as session:
+            min_id = 10 ** 6
+            max_id = 10 ** 7 - 1
+            total_price = 0
 
-            order_id = randint(10 ** 6, 10 ** 7 - 1)
+            order_id = randint(min_id, max_id)
+            orders_len = len(orders)
+            orders.add(order_id)
+
+            while len(orders) == orders_len:
+                order_id += 1
+                orders.add(order_id)
+                if order_id == max_id - 1:
+                    order_id = min_id
+
+            query = select(Product.product, Product.price)
+            resp = await session.execute(query)
+
+            products = resp.all()
+            order_dict = new_order.model_dump()
+            order_dict['bot_shop'] = Order.bot_shop
+
+            for product, price in products:
+                if order_dict[product]:
+                    total_price += price
+
             data = {
                     'order_id': order_id,
                     'email': user.email,
-                    'phone_number': order.phone_number,
+                    'phone_number': new_order.phone_number,
                     'bot_shop': True,
-                    'admin_panel': order.admin_panel,
-                    'database': order.database,
-                    'total_price': 1000
+                    'admin_panel': new_order.admin_panel,
+                    'database': new_order.database,
+                    'total_price': total_price
             }
+
             stmt = insert(Order).values(data)
 
             await session.execute(stmt)
@@ -32,6 +59,7 @@ class OrdersORM:
 
             data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
 
+            send_email.delay(data)
             return data
 
     @classmethod
