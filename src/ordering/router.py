@@ -16,6 +16,10 @@ router = APIRouter(
 
 @router.get('/')
 async def get_orders(limit: int, offset: int, user: User = Depends(current_user)):
+    if limit < 1 or offset < 0:
+        return JSONResponse(
+            {'error': 'incorrect values [limit > 0 and offset >= 0]'}, status_code=422
+        )
     response = await OrdersORM.get_orders(limit, offset, user)
 
     return JSONResponse(jsonable_encoder(response), status_code=200)

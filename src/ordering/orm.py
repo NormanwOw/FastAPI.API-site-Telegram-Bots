@@ -41,25 +41,29 @@ class OrdersORM:
             for product, price in products:
                 if order_dict[product]:
                     total_price += price
+                else:
+                    price = 0
+
+                order_dict[product] = price
 
             data = {
                     'order_id': order_id,
                     'email': user.email,
                     'phone_number': new_order.phone_number,
-                    'bot_shop': True,
-                    'admin_panel': new_order.admin_panel,
-                    'database': new_order.database,
+                    'bot_shop': order_dict['bot_shop'],
+                    'admin_panel': order_dict['admin_panel'],
+                    'database': order_dict['database'],
                     'total_price': total_price
             }
 
             stmt = insert(Order).values(data)
 
+            data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
+            send_email.delay(data)
+
             await session.execute(stmt)
             await session.commit()
 
-            data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
-
-            send_email.delay(data)
             return data
 
     @classmethod
