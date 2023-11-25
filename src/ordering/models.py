@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, TIMESTAMP, Boolean, Column
+from sqlalchemy import Integer, String, TIMESTAMP, Column
 
 from src.session import Base
 

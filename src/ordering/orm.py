@@ -79,7 +79,7 @@ class OrdersORM:
             return resp.scalars().all()
 
     @classmethod
-    async def get_order_by_id(cls, order_id: int, user: User) -> list:
+    async def get_order_by_id(cls, order_id: int, user: User) -> dict:
         async with async_session() as session:
             if user.is_superuser:
                 query = select(Order).where(Order.order_id == order_id)
