@@ -5,7 +5,11 @@ from src.config import SECRET
 from src.auth.models import User
 from src.auth.manager import get_user_manager
 
-cookie_transport = CookieTransport(cookie_name='api-site-telegram-bot', cookie_max_age=3600)
+cookie_transport = CookieTransport(
+    cookie_name='api-site-telegram-bot',
+    cookie_max_age=3600,
+    cookie_secure=False
+)
 
 
 def get_jwt_strategy() -> JWTStrategy:

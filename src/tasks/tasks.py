@@ -17,8 +17,11 @@ def get_email(order: dict):
     email['From'] = SMTP_USER
     email['To'] = order['email']
 
+    del order['email'], order['date']
+
     with open('src/templates/mail.html', 'rb') as mail:
         msg = mail.read().decode('utf-8')
+        msg = msg.format(*order.values())
         email.set_content(msg, subtype='html')
     return email
 

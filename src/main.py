@@ -16,6 +16,9 @@ from src.database import Database, orders
 app = FastAPI(
     title='API Telegram bots',
     version='1.0.0',
+    docs_url=f'/api/{VERSION}/docs',
+    openapi_url=f'/api/{VERSION}/openapi.json',
+    redoc_url=None
 )
 
 
