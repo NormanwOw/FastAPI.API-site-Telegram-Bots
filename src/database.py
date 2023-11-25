@@ -1,21 +1,19 @@
-from typing import AsyncGenerator
+from sqlalchemy import select
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-from src.config import DATABASE_URL
+from src.session import async_session
+from src.ordering.models import Order
 
 
-Base = declarative_base()
+orders = set()
 
 
-engine = create_async_engine(DATABASE_URL)
-async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+class Database:
 
-async_session = async_sessionmaker(engine)
+    @classmethod
+    async def get_all_order_id(cls) -> list:
+        async with async_session() as session:
+            stmt = select(Order.order_id)
+            resp = await session.execute(stmt)
+            result = resp.scalars().all()
 
-
-async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
-        yield session
+            return result
