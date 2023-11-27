@@ -11,12 +11,19 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
 DB_NAME = os.environ.get('DB_NAME')
 
+REDIS_HOST = os.environ.get('REDIS_HOST')
+REDIS_PORT = os.environ.get('REDIS_PORT')
+
 SMTP_USER = os.environ.get('SMTP_USER')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
 
 DATABASE_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
-redis = aioredis.from_url('redis://localhost', encoding='utf8', decode_responses=True)
+redis = aioredis.from_url(
+    f'redis://{REDIS_HOST}:{REDIS_PORT}',
+    encoding='utf8',
+    decode_responses=True
+)
 
 SECRET = os.environ.get('SECRET')
 SECRET_AUTH = os.environ.get('SECRET_AUTH')

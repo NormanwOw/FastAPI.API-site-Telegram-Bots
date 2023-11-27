@@ -1,5 +1,3 @@
-import uvicorn
-
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -70,6 +68,3 @@ async def startup_event():
     FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     orders.update(await Database.get_all_order_id())
 
-
-if __name__ == "__main__":
-    uvicorn.run(app, host='0.0.0.0', port=8080, log_level='info')
