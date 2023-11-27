@@ -5,6 +5,7 @@
 ![](https://img.shields.io/badge/Redis-v5.0-red) ![](https://img.shields.io/badge/Celery-v5.3-green) 
 ![](https://img.shields.io/badge/Flower-v2.0-red) ![](https://img.shields.io/badge/Alembic-v2.0-violet) 
 ![](https://img.shields.io/badge/Docker-blue)
+Actual version: http://95.216.65.93:23345/api/v1/docs
 ## About
 API for site Telegram-bots with Database, Cache and Task manager 
 ## Install
@@ -17,5 +18,5 @@ API for site Telegram-bots with Database, Cache and Task manager
      
 2. `$ docker-compose up -d --build`
 
-Interactive documentation will be here: `127.0.0.1:8000`  
+Interactive documentation will be here: `127.0.0.1:8000/api/v1/docs`  
 Task manager: `127.0.0.1:8888`
