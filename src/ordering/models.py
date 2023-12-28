@@ -23,5 +23,6 @@ class Product(Base):
     __tablename__ = 'product'
 
     id: int = Column(Integer, primary_key=True)
+    title: str = Column(String, nullable=False)
     product: str = Column(String, nullable=False)
     price: int = Column(Integer, nullable=False)
