@@ -26,3 +26,4 @@ class Product(Base):
     title: str = Column(String, nullable=False)
     product: str = Column(String, nullable=False)
     price: int = Column(Integer, nullable=False)
+    description: str = Column(String, nullable=True, default='...')
