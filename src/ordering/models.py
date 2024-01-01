@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, TIMESTAMP, Column
+from sqlalchemy import Integer, String, TIMESTAMP, Column, ForeignKey
 
 from src.session import Base
 
@@ -10,7 +10,7 @@ class Order(Base):
 
     id: int = Column(Integer, primary_key=True)
     order_id: int = Column(Integer, nullable=False)
-    email: str = Column(String, nullable=False)
+    user_id: int = Column(Integer, ForeignKey('user.id'), nullable=False)
     phone_number: str = Column(String, nullable=False)
     bot_shop: int = Column(Integer, nullable=False)
     admin_panel: int = Column(Integer, nullable=False)
