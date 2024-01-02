@@ -36,19 +36,15 @@ class OrdersORM:
 
             products = resp.all()
             order_dict = new_order.model_dump()
-            order_dict['bot_shop'] = Order.bot_shop
+            order_dict['bot_shop'] = True
 
             for product, price in products:
                 if order_dict[product]:
                     total_price += price
-                else:
-                    price = 0
-
-                order_dict[product] = price
 
             data = {
                     'order_id': order_id,
-                    'email': user.email,
+                    'user_id': user.id,
                     'phone_number': new_order.phone_number,
                     'bot_shop': order_dict['bot_shop'],
                     'admin_panel': order_dict['admin_panel'],
@@ -57,12 +53,22 @@ class OrdersORM:
             }
 
             stmt = insert(Order).values(data)
-
-            data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
-            send_email.delay(data)
-
             await session.execute(stmt)
             await session.commit()
+
+            for product, price in products:
+                if data[product]:
+                    data[product] = price
+                else:
+                    data[product] = 0
+
+            query = select(User.email).where(User.id == user.id)
+            query = await session.execute(query)
+            email = query.scalar()
+
+            data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
+            data['email'] = email
+            send_email.delay(data)
 
             return data
 

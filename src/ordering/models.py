@@ -1,8 +1,16 @@
 from datetime import datetime
+from enum import Enum
 
-from sqlalchemy import Integer, String, TIMESTAMP, Column, ForeignKey
+from sqlalchemy import Integer, Boolean, String, \
+    TIMESTAMP, Column, ForeignKey, Enum as SQLAlchemyEnum
 
 from src.session import Base
+
+
+class OrderStatus(Enum):
+    ordered = 'Оформлен'
+    in_progress = 'В работе'
+    completed = 'Исполнен'
 
 
 class Order(Base):
@@ -12,11 +20,15 @@ class Order(Base):
     order_id: int = Column(Integer, nullable=False)
     user_id: int = Column(Integer, ForeignKey('user.id'), nullable=False)
     phone_number: str = Column(String, nullable=False)
-    bot_shop: int = Column(Integer, nullable=False)
-    admin_panel: int = Column(Integer, nullable=False)
-    database: int = Column(Integer, nullable=False)
+    bot_shop: int = Column(Boolean, nullable=False)
+    admin_panel: int = Column(Boolean, nullable=False)
+    database: int = Column(Boolean, nullable=False)
     total_price: int = Column(Integer, nullable=False)
     date: TIMESTAMP = Column(TIMESTAMP, nullable=False, default=datetime.utcnow)
+    status = Column(
+        SQLAlchemyEnum(OrderStatus),
+        default=OrderStatus.ordered
+    )
 
 
 class Product(Base):

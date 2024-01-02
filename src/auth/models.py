@@ -8,7 +8,6 @@ from src.session import Base
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     id: int = Column(Integer, primary_key=True)
-    phone_number: str = Column(String, nullable=False)
     email: str = Column(String, nullable=False)
     hashed_password: str = Column(String(length=1024), nullable=False)
     registered = Column(TIMESTAMP, default=datetime.utcnow)
