@@ -23,6 +23,4 @@ API for site Telegram-bots with Database, Cache and Task manager
 Interactive documentation will be here: `127.0.0.1:8000/api/v1/docs`  
 Task manager: `127.0.0.1:8888`
 ___
-![2023-11-30_10-11-11](https://github.com/NormanwOw/API-site-Telegram-Bots/assets/118648914/0de1c963-ba21-45a2-b2c0-7a207b18551c)
-
-
+![api-page](https://github.com/NormanwOw/FastAPI.API-site-Telegram-Bots/assets/118648914/2101df33-2187-498b-9042-c2d369c8a26c)
