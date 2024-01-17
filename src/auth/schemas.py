@@ -1,24 +1,23 @@
-from typing import Optional
-
-from pydantic import EmailStr
-from fastapi_users import schemas
+from pydantic import BaseModel, EmailStr
 
 
-class UserRead(schemas.BaseUser[int]):
-    id: int
+class UserRead(BaseModel):
+    username: str
+    password: str
+
+
+class UserCreate(BaseModel):
+    username: str
     email: EmailStr
-    is_active: bool = True
-    is_superuser: bool = False
-    is_verified: bool = False
+    password: str
+    confirm_password: str
 
     class Config:
         orm_mode = True
 
 
-class UserCreate(schemas.BaseUserCreate):
-    email: EmailStr
-    password: str
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
 
-
-class UserUpdate(schemas.BaseUserUpdate):
-    email: EmailStr

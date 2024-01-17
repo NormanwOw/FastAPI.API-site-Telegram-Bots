@@ -1,16 +1,18 @@
-from datetime import datetime
-
-from sqlalchemy import Integer, String, TIMESTAMP, Boolean, Column
-from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
+from sqlalchemy import BigInteger, String, TIMESTAMP, Boolean, Column
 
 from src.session import Base
 
 
-class User(SQLAlchemyBaseUserTable[int], Base):
-    id: int = Column(Integer, primary_key=True)
-    email: str = Column(String, nullable=False)
-    hashed_password: str = Column(String(length=1024), nullable=False)
-    registered = Column(TIMESTAMP, default=datetime.utcnow)
-    is_active: bool = Column(Boolean, default=True, nullable=False)
-    is_superuser: bool = Column(Boolean, default=False, nullable=False)
-    is_verified: bool = Column(Boolean, default=False, nullable=False)
+class User(Base):
+    __tablename__ = 'user'
+
+    id: int = Column(BigInteger, primary_key=True)
+    password: str = Column(String, nullable=False)
+    last_login: TIMESTAMP = Column(TIMESTAMP, nullable=True)
+    is_superuser: bool = Column(Boolean, nullable=False, default=False)
+    username: str = Column(String, unique=True, nullable=False)
+    email: str = Column(String, unique=True, nullable=False)
+    is_staff: bool = Column(Boolean, nullable=False, default=False)
+    is_active: bool = Column(Boolean, nullable=False, default=True)
+    first_name: str = Column(String, nullable=True)
+    last_name: str = Column(String, nullable=True)
