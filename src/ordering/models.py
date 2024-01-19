@@ -3,10 +3,9 @@ from datetime import datetime
 from sqlalchemy import BigInteger, Integer, String, TIMESTAMP, Column, ForeignKey
 
 from src.session import Base
-from utils import SerializationMixin
 
 
-class Order(Base, SerializationMixin):
+class Order(Base):
     __tablename__ = 'order'
 
     id: int = Column(BigInteger, primary_key=True)
@@ -21,7 +20,7 @@ class Order(Base, SerializationMixin):
     user_id: int = Column(BigInteger, ForeignKey('user.id'), nullable=False)
 
 
-class Product(Base, SerializationMixin):
+class Product(Base):
     __tablename__ = 'product'
 
     id: int = Column(BigInteger, primary_key=True)

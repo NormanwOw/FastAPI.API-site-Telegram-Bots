@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -6,6 +7,7 @@ from fastapi_cache.backends.redis import RedisBackend
 
 from src.auth.router import router as auth_router
 from src.ordering.router import router as order_router
+from src.users.router import router as users_router
 from src.config import VERSION, redis
 from src.database import Database, orders
 
@@ -19,6 +21,10 @@ app = FastAPI(
 
 app.include_router(
     auth_router
+)
+
+app.include_router(
+    users_router
 )
 
 app.include_router(
@@ -46,3 +52,6 @@ async def startup_event():
     FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     orders.update(await Database.get_all_order_id())
 
+
+if __name__ == '__main__':
+    uvicorn.run(app, host='0.0.0.0', port=7000)
