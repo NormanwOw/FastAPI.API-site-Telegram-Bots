@@ -8,30 +8,31 @@ from src.session import async_session
 from src.ordering.models import Order, Product
 from src.ordering.schemas import NewOrder
 from src.auth.models import User
-from src.database import orders
+from src.database import Database
 from src.tasks.tasks import send_email
 
 
 class OrdersORM:
 
-    @classmethod
-    async def new_order(cls, user: User, new_order: NewOrder) -> dict:
+    def __init__(self):
+        self.db = Database()
+
+    async def new_order(self, user: User, new_order: NewOrder) -> dict:
         async with async_session() as session:
             min_id = 10 ** 6
             max_id = 10 ** 7 - 1
             total_price = 0
 
             order_id = randint(min_id, max_id)
-            orders_len = len(orders)
-            orders.add(order_id)
+            orders_list = await self.db.get_all_order_id()
 
-            while len(orders) == orders_len:
+            while order_id in orders_list:
                 order_id += 1
-                orders.add(order_id)
+
                 if order_id == max_id - 1:
                     order_id = min_id
 
-            query = select(Product.product, Product.price)
+            query = select(Product.name, Product.price)
             resp = await session.execute(query)
 
             products = resp.all()
@@ -41,8 +42,9 @@ class OrdersORM:
             for product, price in products:
                 if order_dict[product]:
                     total_price += price
+                    order_dict[product] = price
 
-            data = {
+            result_order = {
                     'order_id': order_id,
                     'user_id': user.id,
                     'phone_number': new_order.phone_number,
@@ -52,25 +54,15 @@ class OrdersORM:
                     'total_price': total_price
             }
 
-            stmt = insert(Order).values(data)
+            stmt = insert(Order).values(result_order)
             await session.execute(stmt)
             await session.commit()
 
-            for product, price in products:
-                if data[product]:
-                    data[product] = price
-                else:
-                    data[product] = 0
+            result_order['date'] = datetime.utcnow()
+            result_order['email'] = user.email
+            # send_email.delay(data)
 
-            query = select(User.email).where(User.id == user.id)
-            query = await session.execute(query)
-            email = query.scalar()
-
-            data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
-            data['email'] = email
-            send_email.delay(data)
-
-            return data
+            return result_order
 
     @classmethod
     async def get_orders(cls, limit: int, offset: int, user: User) -> list:
@@ -96,3 +88,6 @@ class OrdersORM:
             result = jsonable_encoder(resp.scalar())
 
             return result
+
+
+orders = OrdersORM()

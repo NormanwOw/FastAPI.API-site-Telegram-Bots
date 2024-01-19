@@ -9,7 +9,6 @@ from src.auth.router import router as auth_router
 from src.ordering.router import router as order_router
 from src.users.router import router as users_router
 from src.config import VERSION, redis
-from src.database import Database, orders
 
 app = FastAPI(
     title='API Telegram bots',
@@ -50,7 +49,6 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
 @app.on_event('startup')
 async def startup_event():
     FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
-    orders.update(await Database.get_all_order_id())
 
 
 if __name__ == '__main__':
