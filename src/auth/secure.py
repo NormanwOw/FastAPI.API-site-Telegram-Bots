@@ -9,12 +9,12 @@ import jose
 from jose import jwt
 from fastapi import Response, Request
 from fastapi import HTTPException
-from sqlalchemy import insert, select, or_
+from sqlalchemy import select, or_
 
 from src.auth.schemas import UserRead
 from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH
 from src.session import async_session
-from src.auth.schemas import UserCreate
+from src.auth.schemas import UserCreate, UserResponse
 from src.auth.models import User
 
 
@@ -74,12 +74,11 @@ class Validator:
     async def validate_user(self, user: UserRead) -> User:
         async with async_session() as session:
             query = select(User).where(User.username == user.username)
-            query = await session.execute(query)
-            result_user = query.scalar()
+            result_user = await session.scalar(query)
 
             if not result_user:
                 raise HTTPException(
-                    status_code=403,
+                    status_code=404,
                     detail='Username does not exists'
                 )
 
@@ -96,10 +95,9 @@ class Validator:
             return result_user
 
 
-class AuthORM:
-    validator = Validator()
+class AuthORM(Validator):
 
-    async def set_user(self, user: UserCreate) -> User:
+    async def set_user(self, user: UserCreate) -> UserResponse:
         if user.password != user.confirm_password:
             raise HTTPException(
                 status_code=403,
@@ -110,8 +108,7 @@ class AuthORM:
             query = select(User).where(
                 or_(User.username == user.username, User.email == user.email)
             )
-            res = await session.execute(query)
-            exists_user = res.scalar()
+            exists_user = await session.scalar(query)
 
             if exists_user:
                 if exists_user.username == user.username:
@@ -125,25 +122,22 @@ class AuthORM:
                         status_code=403,
                         detail='User with this Email already exists'
                     )
-            user.password = await self.validator.encode(user.password)
-            stmt = insert(User).values(
-                **user.model_dump(exclude={'confirm_password'})
-            ).returning(User)
-            await session.execute(stmt)
+            user.password = await self.encode(user.password)
+            result = User(**user.model_dump(exclude={'confirm_password'}))
+            session.add(result)
+            await session.flush()
+            response = UserResponse(**result.as_dict())
             await session.commit()
 
-            query = select(User).where(User.username == user.username)
-            result_user = await session.execute(query)
-
-            return result_user.scalar()
+            return response
 
     @staticmethod
     async def get_user(user_id: int) -> User:
         async with async_session() as session:
             query = select(User).where(User.id == user_id)
-            result_user = await session.execute(query)
+            result_user = await session.scalar(query)
 
-            return result_user.scalar()
+            return result_user
 
 
 class Secure(User):

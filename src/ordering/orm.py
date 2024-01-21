@@ -1,12 +1,12 @@
 from datetime import datetime
 from random import randint
 
-from sqlalchemy import insert, select
-from fastapi.encoders import jsonable_encoder
+from sqlalchemy import insert, select, delete
+from fastapi.exceptions import HTTPException
 
 from src.session import async_session
 from src.ordering.models import Order, Product
-from src.ordering.schemas import NewOrder
+from src.ordering.schemas import NewOrder, ResponseOrder
 from src.auth.models import User
 from src.database import Database
 from src.tasks.tasks import send_email
@@ -76,18 +76,40 @@ class OrdersORM:
 
             return resp.scalars().all()
 
-    @classmethod
-    async def get_order_by_id(cls, order_id: int, user: User) -> dict:
+    @staticmethod
+    async def get_order_by_id(order_id: int, user: User) -> ResponseOrder:
         async with async_session() as session:
             if user.is_superuser:
-                query = select(Order).where(Order.order_id == order_id)
+                order = await session.scalar(
+                    select(Order).where(Order.order_id == order_id)
+                )
             else:
-                query = select(Order).where(Order.order_id == order_id, Order.email == user.email)
+                order = await session.scalar(
+                    select(Order).where(
+                        Order.order_id == order_id, Order.user_id == user.id
+                    )
+                )
+            if not order:
+                raise HTTPException(status_code=404)
 
-            resp = await session.execute(query)
-            result = jsonable_encoder(resp.scalar())
+            result_order = ResponseOrder(**order.as_dict(), email=user.email)
 
-            return result
+            return result_order
+
+    @staticmethod
+    async def delete_order(order_id: int, user: User):
+        async with async_session() as session:
+            if user.is_superuser:
+                await session.execute(
+                    delete(Order).where(Order.order_id == order_id)
+                )
+            else:
+                await session.execute(
+                    delete(Order).where(
+                        Order.order_id == order_id, Order.user_id == user.id
+                    )
+                )
+            await session.commit()
 
 
 orders = OrdersORM()

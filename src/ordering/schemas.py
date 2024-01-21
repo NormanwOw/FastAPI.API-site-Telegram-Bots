@@ -17,4 +17,5 @@ class ResponseOrder(BaseModel):
     admin_panel: int
     database: int
     total_price: int
+    status: str
     date: datetime
