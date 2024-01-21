@@ -1,92 +1,131 @@
 from datetime import datetime
 from random import randint
 
-from sqlalchemy import insert, select
-from fastapi.encoders import jsonable_encoder
+from sqlalchemy import insert, select, delete
+from fastapi.exceptions import HTTPException
 
 from src.session import async_session
 from src.ordering.models import Order, Product
-from src.ordering.schemas import NewOrder
+from src.ordering.schemas import NewOrder, ResponseOrder
 from src.auth.models import User
-from src.database import orders
+from src.database import Database
 from src.tasks.tasks import send_email
 
 
 class OrdersORM:
 
-    @classmethod
-    async def new_order(cls, user: User, new_order: NewOrder) -> dict:
+    def __init__(self):
+        self.db = Database()
+
+    async def new_order(self, user: User, new_order: NewOrder) -> dict:
         async with async_session() as session:
             min_id = 10 ** 6
             max_id = 10 ** 7 - 1
             total_price = 0
 
             order_id = randint(min_id, max_id)
-            orders_len = len(orders)
-            orders.add(order_id)
+            orders_list = await self.db.get_all_order_id()
 
-            while len(orders) == orders_len:
+            while order_id in orders_list:
                 order_id += 1
-                orders.add(order_id)
+
                 if order_id == max_id - 1:
                     order_id = min_id
 
-            query = select(Product.product, Product.price)
+            query = select(Product.name, Product.price)
             resp = await session.execute(query)
 
             products = resp.all()
             order_dict = new_order.model_dump()
-            order_dict['bot_shop'] = Order.bot_shop
+            order_dict['bot_shop'] = True
 
             for product, price in products:
                 if order_dict[product]:
                     total_price += price
-                else:
-                    price = 0
+                    order_dict[product] = price
 
-                order_dict[product] = price
-
-            data = {
+            result_order = {
                     'order_id': order_id,
-                    'email': user.email,
+                    'user_id': user.id,
                     'phone_number': new_order.phone_number,
                     'bot_shop': order_dict['bot_shop'],
                     'admin_panel': order_dict['admin_panel'],
                     'database': order_dict['database'],
-                    'total_price': total_price
+                    'total_price': total_price,
+                    'status': 'Оформлен'
             }
 
-            stmt = insert(Order).values(data)
-
-            data['date'] = datetime.utcnow().strftime('%d.%m.%Y %H:%m')
-            send_email.delay(data)
-
+            stmt = insert(Order).values(result_order)
             await session.execute(stmt)
             await session.commit()
 
-            return data
+            result_order['date'] = datetime.utcnow()
+            result_order['email'] = user.email
+            # send_email.delay(data)
 
-    @classmethod
-    async def get_orders(cls, limit: int, offset: int, user: User) -> list:
+            return result_order
+
+    @staticmethod
+    async def get_orders(limit: int, offset: int, user: User) -> list:
+        if limit < 1 or offset < 0:
+            raise HTTPException(
+                detail='incorrect values [limit > 0 and offset >= 0]',
+                status_code=422
+            )
+
         async with async_session() as session:
-            if user.is_superuser:
-                query = select(Order).limit(limit).offset(offset)
+            if user.is_superuser or user.is_staff:
+                query = select(Order, User.email).join(User).limit(limit).offset(offset)
             else:
-                query = select(Order).where(Order.email == user.email).limit(limit).offset(offset)
+                query = select(Order, User.email).where(
+                    Order.user_id == user.id).join(User).limit(limit).offset(offset)
 
             resp = await session.execute(query)
 
-            return resp.scalars().all()
+            resp_list = resp.fetchall()
 
-    @classmethod
-    async def get_order_by_id(cls, order_id: int, user: User) -> dict:
+            order_list = []
+            for order, email in resp_list:
+                order_dict = order.as_dict()
+                order_dict.update({'email': email})
+                order_list.append(order_dict)
+
+            return order_list
+
+    @staticmethod
+    async def get_order_by_id(order_id: int, user: User) -> ResponseOrder:
+        async with async_session() as session:
+            if user.is_superuser or user.is_staff:
+                order = await session.scalar(
+                    select(Order).where(Order.order_id == order_id)
+                )
+            else:
+                order = await session.scalar(
+                    select(Order).where(
+                        Order.order_id == order_id, Order.user_id == user.id
+                    )
+                )
+            if not order:
+                raise HTTPException(status_code=404)
+
+            result_order = ResponseOrder(**order.as_dict(), email=user.email)
+
+            return result_order
+
+    @staticmethod
+    async def delete_order(order_id: int, user: User):
         async with async_session() as session:
             if user.is_superuser:
-                query = select(Order).where(Order.order_id == order_id)
+                await session.execute(
+                    delete(Order).where(Order.order_id == order_id)
+                )
             else:
-                query = select(Order).where(Order.order_id == order_id, Order.email == user.email)
+                await session.execute(
+                    delete(Order).where(
+                        Order.order_id == order_id, Order.user_id == user.id
+                    )
+                )
+            await session.commit()
 
-            resp = await session.execute(query)
-            result = jsonable_encoder(resp.scalar())
 
-            return result
+orders = OrdersORM()

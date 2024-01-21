@@ -13,7 +13,7 @@ def get_email(order: dict):
     email['From'] = SMTP_USER
     email['To'] = order['email']
 
-    del order['email'], order['date']
+    del order['email'], order['date'], order['user_id']
 
     with open('src/templates/mail.html', 'rb') as mail:
         msg = mail.read().decode('utf-8')

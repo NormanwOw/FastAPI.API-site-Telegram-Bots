@@ -4,9 +4,6 @@ from src.session import async_session
 from src.ordering.models import Order
 
 
-orders = set()
-
-
 class Database:
 
     @classmethod

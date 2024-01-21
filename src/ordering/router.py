@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
+from fastapi.responses import Response
+from typing import List
 
-from src.ordering.schemas import NewOrder
-from src.auth.models import User
-from src.auth.auth_config import current_user
-from src.ordering.orm import OrdersORM
+from src.auth.secure import Secure, get_current_user
+from src.ordering.schemas import NewOrder, ResponseOrder
 from src.config import VERSION
+from src.ordering.orm import orders
 
 router = APIRouter(
     prefix=f'/api/{VERSION}/orders',
@@ -14,27 +13,29 @@ router = APIRouter(
 )
 
 
-@router.get('/')
-async def get_orders(limit: int, offset: int, user: User = Depends(current_user)):
-    if limit < 1 or offset < 0:
-        return JSONResponse(
-            {'error': 'incorrect values [limit > 0 and offset >= 0]'}, status_code=422
-        )
-    response = await OrdersORM.get_orders(limit, offset, user)
+@router.get('/', status_code=200, response_model=List[ResponseOrder])
+async def get_orders(limit: int, offset: int, user: Secure = Depends(get_current_user)):
+    order_list = await orders.get_orders(limit, offset, user)
 
-    return JSONResponse(jsonable_encoder(response), status_code=200)
+    return order_list
 
 
-@router.get('/{order_id}', status_code=404)
-async def get_order_by_id(order_id: int, user: User = Depends(current_user)):
-    response = await OrdersORM.get_order_by_id(order_id, user)
-    if response:
-        return JSONResponse(response, status_code=200)
+@router.get('/{order_id}', response_model=ResponseOrder, status_code=200)
+async def get_order(order_id: int, user: Secure = Depends(get_current_user)):
+    result_order = await orders.get_order_by_id(order_id, user)
+
+    return result_order
 
 
-@router.post('/')
-async def new_order(order: NewOrder, user: User = Depends(current_user)):
-    response = await OrdersORM.new_order(user, order)
+@router.post('/', response_model=ResponseOrder, status_code=201)
+async def new_order(order: NewOrder, user: Secure = Depends(get_current_user)):
+    result_order = await orders.new_order(user, order)
 
-    return JSONResponse(response, status_code=201)
+    return result_order
 
+
+@router.delete('/{order_id}')
+async def delete_order(order_id: int, user: Secure = Depends(get_current_user)):
+    await orders.delete_order(order_id, user)
+
+    return Response(status_code=204)
