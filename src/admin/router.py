@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 
-@router.get('/users')
+@router.get('/users/')
 async def get_users(user_id: int, user: Secure = Depends(admin)):
     return {'user': user_id}
 
