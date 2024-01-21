@@ -51,7 +51,8 @@ class OrdersORM:
                     'bot_shop': order_dict['bot_shop'],
                     'admin_panel': order_dict['admin_panel'],
                     'database': order_dict['database'],
-                    'total_price': total_price
+                    'total_price': total_price,
+                    'status': 'Оформлен'
             }
 
             stmt = insert(Order).values(result_order)
@@ -64,22 +65,37 @@ class OrdersORM:
 
             return result_order
 
-    @classmethod
-    async def get_orders(cls, limit: int, offset: int, user: User) -> list:
+    @staticmethod
+    async def get_orders(limit: int, offset: int, user: User) -> list:
+        if limit < 1 or offset < 0:
+            raise HTTPException(
+                detail='incorrect values [limit > 0 and offset >= 0]',
+                status_code=422
+            )
+
         async with async_session() as session:
-            if user.is_superuser:
-                query = select(Order).limit(limit).offset(offset)
+            if user.is_superuser or user.is_staff:
+                query = select(Order, User.email).join(User).limit(limit).offset(offset)
             else:
-                query = select(Order).where(Order.email == user.email).limit(limit).offset(offset)
+                query = select(Order, User.email).where(
+                    Order.user_id == user.id).join(User).limit(limit).offset(offset)
 
             resp = await session.execute(query)
 
-            return resp.scalars().all()
+            resp_list = resp.fetchall()
+
+            order_list = []
+            for order, email in resp_list:
+                order_dict = order.as_dict()
+                order_dict.update({'email': email})
+                order_list.append(order_dict)
+
+            return order_list
 
     @staticmethod
     async def get_order_by_id(order_id: int, user: User) -> ResponseOrder:
         async with async_session() as session:
-            if user.is_superuser:
+            if user.is_superuser or user.is_staff:
                 order = await session.scalar(
                     select(Order).where(Order.order_id == order_id)
                 )

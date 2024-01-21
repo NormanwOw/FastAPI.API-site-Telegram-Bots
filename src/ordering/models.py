@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import BigInteger, TIMESTAMP, ForeignKey
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from src.session import Base
 
@@ -24,8 +24,11 @@ class Order(Base):
         BigInteger, ForeignKey('user.id'), nullable=False
     )
 
+    user = relationship('User', back_populates='order')
+
     def as_dict(self):
         return self.__dict__
+
 
 class Product(Base):
     __tablename__ = 'product'

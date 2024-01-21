@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse, Response
+from fastapi import APIRouter, Depends
+from fastapi.responses import Response
+from typing import List
 
 from src.auth.secure import Secure, get_current_user
 from src.ordering.schemas import NewOrder, ResponseOrder
@@ -12,15 +13,11 @@ router = APIRouter(
 )
 
 
-@router.get('/')
-async def get_orders(limit: int, offset: int):
-    if limit < 1 or offset < 0:
-        raise HTTPException(
-            detail='incorrect values [limit > 0 and offset >= 0]',
-            status_code=422
-        )
+@router.get('/', status_code=200, response_model=List[ResponseOrder])
+async def get_orders(limit: int, offset: int, user: Secure = Depends(get_current_user)):
+    order_list = await orders.get_orders(limit, offset, user)
 
-    return JSONResponse('orders', status_code=200)
+    return order_list
 
 
 @router.get('/{order_id}', response_model=ResponseOrder, status_code=200)
