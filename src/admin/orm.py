@@ -1,21 +1,20 @@
 from sqlalchemy import select, delete
-from fastapi.encoders import jsonable_encoder
 
 from src.session import async_session
 from src.auth.models import User
+from src.auth.schemas import UserResponse
 
 
-class UsersORM:
+class AdminORM:
 
     @staticmethod
-    async def get_users(limit: int, offset: int) -> list:
-        async with async_session() as session:
+    async def get_user(user_id: int, user: User) -> UserResponse:
 
-            query = select(User).limit(limit).offset(offset)
-            resp = await session.execute(query)
-            result = jsonable_encoder(resp.scalars().all())
-            for item in result:
-                del item['hashed_password']
+        async with async_session() as session:
+            result = await session.scalar(
+                select(User).where(User.id == user_id)
+            )
+            response_user = UserResponse()
 
             return result
 
@@ -26,6 +25,3 @@ class UsersORM:
                 stmt = delete(User).where(User.id == user.id)
             await session.execute(stmt)
             await session.commit()
-
-
-users = UsersORM()

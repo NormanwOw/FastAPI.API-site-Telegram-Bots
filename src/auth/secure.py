@@ -140,9 +140,10 @@ class AuthORM(Validator):
             return result_user
 
 
-class Secure(User):
+class Secure(User, AuthORM):
 
-    auth = AuthORM()
+    def __init__(self, role: str = 'User'):
+        self.role = role
 
     async def __call__(self, request: Request, response: Response) -> User:
         auth_exception = HTTPException(status_code=403, detail='Not authorized')
@@ -153,7 +154,11 @@ class Secure(User):
             token = request.cookies.get(SITE_NAME)
             decoded_token = jwt.decode(token, SECRET_AUTH, algorithms=ALGORITHM)
             user_id = int(decoded_token.get('sub'))
-            user = await self.auth.get_user(user_id)
+            user = await self.get_user(user_id)
+
+            if self.role == 'Admin' and not user.is_superuser:
+                raise HTTPException(status_code=403, detail='Not enough permissions')
+
             return user
 
         except jose.ExpiredSignatureError:
@@ -162,5 +167,7 @@ class Secure(User):
 
 
 get_current_user = Secure()
+admin = Secure('Admin')
 validator = Validator()
 auth = AuthORM()
+

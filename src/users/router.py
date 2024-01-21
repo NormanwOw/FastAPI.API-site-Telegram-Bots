@@ -17,8 +17,13 @@ async def me(user: Secure = Depends(get_current_user)):
     return user
 
 
+@router.patch('/')
+async def update_me(user: Secure = Depends(get_current_user)):
+    return {'user': user}
+
+
 @router.delete('/', status_code=204)
-async def delete(response: Response, user: Secure = Depends(get_current_user)):
+async def delete_me(response: Response, user: Secure = Depends(get_current_user)):
     await users.delete_user(user)
     response.delete_cookie(SITE_NAME)
 
