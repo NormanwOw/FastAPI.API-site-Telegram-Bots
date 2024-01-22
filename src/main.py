@@ -8,7 +8,6 @@ from fastapi_cache.backends.redis import RedisBackend
 from src.auth.router import router as auth_router
 from src.ordering.router import router as order_router
 from src.users.router import router as users_router
-from src.admin.router import router as admin_router
 from src.config import VERSION, redis
 
 app = FastAPI(
@@ -29,10 +28,6 @@ app.include_router(
 
 app.include_router(
     order_router
-)
-
-app.include_router(
-    admin_router
 )
 
 
