@@ -137,6 +137,12 @@ class AuthORM(Validator):
             query = select(User).where(User.id == user_id)
             result_user = await session.scalar(query)
 
+            if not result_user:
+                raise HTTPException(
+                    status_code=404,
+                    detail='User does not exists'
+                )
+
             return result_user
 
     async def change_password(

@@ -20,7 +20,7 @@ async def me(user: Secure = Depends(get_current_user)):
 
 @router.patch('/')
 async def update_me(data: UserUpdate, user: Secure = Depends(get_current_user)):
-    await users.update_user(data, user)
+    await users.update_user(user, schema=data)
     return utils.SUCCESS
 
 
@@ -28,5 +28,4 @@ async def update_me(data: UserUpdate, user: Secure = Depends(get_current_user)):
 async def delete_me(response: Response, user: Secure = Depends(get_current_user)):
     await users.delete_user(user)
     response.delete_cookie(SITE_NAME)
-
     return utils.SUCCESS

@@ -7,16 +7,7 @@ from src.auth.models import User
 
 class AdminORM:
 
-    # @staticmethod
-    # async def get_user(user_id: int, user: User) -> UserResponse:
-    #
-    #     async with async_session() as session:
-    #         result = await session.scalar(
-    #             select(User).where(User.id == user_id)
-    #         )
-    #         response_user = UserResponse()
-    #
-    #         return result
+
 
     @staticmethod
     async def delete_user(user: User):

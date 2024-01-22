@@ -4,8 +4,7 @@ from typing import Union
 from pydantic import BaseModel, EmailStr
 
 
-class AdmUserResponse(BaseModel):
-    id: int
+class AdmUserUpdate(BaseModel):
     username: str
     email: EmailStr
     first_name: Union[str, None]
@@ -13,4 +12,8 @@ class AdmUserResponse(BaseModel):
     is_superuser: bool
     is_staff: bool
     is_active: bool
+
+
+class AdmUserResponse(AdmUserUpdate):
+    id: int
     last_login: Union[datetime, None]
