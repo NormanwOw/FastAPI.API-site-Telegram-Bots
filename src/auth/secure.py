@@ -9,16 +9,13 @@ import jose
 from jose import jwt
 from fastapi import Response, Request
 from fastapi import HTTPException
-from sqlalchemy import select, or_
+from sqlalchemy import select, update, or_
 
 from src.auth.schemas import UserRead
-from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH
+from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH, ACCESS_TOKEN_EXPIRE_MINUTES
 from src.session import async_session
-from src.auth.schemas import UserCreate, UserResponse
+from src.auth.schemas import UserCreate, UserResponse, UserChangePass
 from src.auth.models import User
-
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 async def create_access_token(user_id: int) -> str:
@@ -88,7 +85,7 @@ class Validator:
 
             if not compare:
                 raise HTTPException(
-                    status_code=403,
+                    status_code=422,
                     detail='Incorrect Username or Password'
                 )
 
@@ -100,8 +97,8 @@ class AuthORM(Validator):
     async def set_user(self, user: UserCreate) -> UserResponse:
         if user.password != user.confirm_password:
             raise HTTPException(
-                status_code=403,
-                detail='Password is not equal Confirm_password'
+                status_code=422,
+                detail='Password is not matches Confirm_password'
             )
 
         async with async_session() as session:
@@ -113,13 +110,13 @@ class AuthORM(Validator):
             if exists_user:
                 if exists_user.username == user.username:
                     raise HTTPException(
-                        status_code=403,
+                        status_code=422,
                         detail='User with this Username already exists'
                     )
 
                 if exists_user.email == user.email:
                     raise HTTPException(
-                        status_code=403,
+                        status_code=422,
                         detail='User with this Email already exists'
                     )
             user.password = await self.encode(user.password)
@@ -137,7 +134,40 @@ class AuthORM(Validator):
             query = select(User).where(User.id == user_id)
             result_user = await session.scalar(query)
 
+            if not result_user:
+                raise HTTPException(
+                    status_code=404,
+                    detail='User does not exists'
+                )
+
             return result_user
+
+    async def change_password(
+            self, data: UserChangePass, user: User
+    ):
+        if data.new_password == data.current_password:
+            raise HTTPException(
+                status_code=403,
+                detail='New password matches the Current password'
+            )
+
+        decoded = await self.decode(user.password)
+        encoded = await self.encode(data.current_password, decoded['salt'])
+        compare = await self.compare_passwords(user.password, encoded)
+
+        if not compare:
+            raise HTTPException(
+                status_code=422,
+                detail='Incorrect Password'
+            )
+        encoded_new_password = await self.encode(data.new_password)
+        async with async_session() as session:
+            await session.execute(
+                update(User).values(password=encoded_new_password).where(
+                    User.id == user.id
+                )
+            )
+            await session.commit()
 
 
 class Secure(User, AuthORM):

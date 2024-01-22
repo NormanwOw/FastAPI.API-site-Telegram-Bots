@@ -8,23 +8,23 @@ from src.session import async_session
 from src.ordering.models import Order, Product
 from src.ordering.schemas import NewOrder, ResponseOrder
 from src.auth.models import User
-from src.database import Database
 from src.tasks.tasks import send_email
 
 
 class OrdersORM:
 
-    def __init__(self):
-        self.db = Database()
-
-    async def new_order(self, user: User, new_order: NewOrder) -> dict:
+    @staticmethod
+    async def new_order(user: User, new_order: NewOrder) -> dict:
         async with async_session() as session:
             min_id = 10 ** 6
             max_id = 10 ** 7 - 1
             total_price = 0
 
             order_id = randint(min_id, max_id)
-            orders_list = await self.db.get_all_order_id()
+
+            stmt = select(Order.order_id)
+            resp = await session.execute(stmt)
+            orders_list = resp.scalars().all()
 
             while order_id in orders_list:
                 order_id += 1

@@ -18,3 +18,8 @@ class UserResponse(BaseModel):
     username: str
     email: str
 
+
+class UserChangePass(BaseModel):
+    current_password: str
+    new_password: str
+
