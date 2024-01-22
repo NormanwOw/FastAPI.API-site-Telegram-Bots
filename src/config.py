@@ -31,6 +31,7 @@ redis = aioredis.from_url(
 SECRET = os.environ.get('SECRET')
 SECRET_AUTH = os.environ.get('SECRET_AUTH')
 ALGORITHM = os.environ.get('ALGORITHM')
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 VERSION = 'v1'
 SITE_NAME = 'site-telegram-bots'

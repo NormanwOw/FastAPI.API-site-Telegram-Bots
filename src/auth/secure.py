@@ -12,13 +12,10 @@ from fastapi import HTTPException
 from sqlalchemy import select, update, or_
 
 from src.auth.schemas import UserRead
-from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH
+from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH, ACCESS_TOKEN_EXPIRE_MINUTES
 from src.session import async_session
 from src.auth.schemas import UserCreate, UserResponse, UserChangePass
 from src.auth.models import User
-
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 async def create_access_token(user_id: int) -> str:

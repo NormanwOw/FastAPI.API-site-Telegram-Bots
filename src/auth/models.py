@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import BigInteger, TIMESTAMP
 from sqlalchemy.orm import mapped_column, Mapped, relationship
+
 from src.session import Base
 from src.ordering.models import Order
 
