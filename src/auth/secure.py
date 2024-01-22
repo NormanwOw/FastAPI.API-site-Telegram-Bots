@@ -95,12 +95,6 @@ class Validator:
 class AuthORM(Validator):
 
     async def set_user(self, user: UserCreate) -> UserResponse:
-        if user.password != user.confirm_password:
-            raise HTTPException(
-                status_code=422,
-                detail='Password is not matches Confirm_password'
-            )
-
         async with async_session() as session:
             query = select(User).where(
                 or_(User.username == user.username, User.email == user.email)
@@ -113,12 +107,12 @@ class AuthORM(Validator):
                         status_code=422,
                         detail='User with this Username already exists'
                     )
-
                 if exists_user.email == user.email:
                     raise HTTPException(
                         status_code=422,
                         detail='User with this Email already exists'
                     )
+
             user.password = await self.encode(user.password)
             result = User(
                 **user.model_dump(exclude={'confirm_password'}),
@@ -148,11 +142,6 @@ class AuthORM(Validator):
     async def change_password(
             self, data: UserChangePass, user: User
     ):
-        if data.new_password == data.current_password:
-            raise HTTPException(
-                status_code=403,
-                detail='New password matches the Current password'
-            )
 
         decoded = await self.decode(user.password)
         encoded = await self.encode(data.current_password, decoded['salt'])
@@ -179,7 +168,10 @@ class Secure(User, AuthORM):
         self.role = role
 
     async def __call__(self, request: Request, response: Response) -> User:
-        auth_exception = HTTPException(status_code=403, detail='Not authorized')
+        auth_exception = HTTPException(
+            status_code=403,
+            detail='Not authorized'
+        )
 
         if SITE_NAME not in request.cookies:
             raise auth_exception
@@ -190,7 +182,10 @@ class Secure(User, AuthORM):
             user = await self.get_user(user_id)
 
             if self.role == 'Admin' and not user.is_superuser:
-                raise HTTPException(status_code=403, detail='Not enough permissions')
+                raise HTTPException(
+                    status_code=403,
+                    detail='Not enough permissions'
+                )
 
             return user
 

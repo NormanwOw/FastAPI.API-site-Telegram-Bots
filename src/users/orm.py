@@ -1,4 +1,3 @@
-from string import ascii_letters
 from typing import Union
 
 from sqlalchemy import select, delete, update
@@ -40,12 +39,6 @@ class UsersORM:
             user_id: int = None,
             schema: Union[UserUpdate, AdmUserUpdate] = None
     ):
-        for char in schema.first_name + schema.last_name:
-            if char not in ascii_letters + '-':
-                raise HTTPException(
-                    status_code=422,
-                    detail='Incorrect First-name or Last-name'
-                )
         result_user_id = user_id or user.id
 
         async with async_session() as session:

@@ -35,6 +35,7 @@ app.include_router(
     admin_router
 )
 
+
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request: Request, exc: RequestValidationError):
     details = exc.errors()[0]
