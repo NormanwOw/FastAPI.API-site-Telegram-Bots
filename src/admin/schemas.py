@@ -17,3 +17,4 @@ class AdmUserUpdate(BaseModel):
 class AdmUserResponse(AdmUserUpdate):
     id: int
     last_login: Union[datetime, None]
+    date_joined: datetime

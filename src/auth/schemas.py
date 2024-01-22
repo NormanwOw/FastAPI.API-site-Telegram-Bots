@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Union
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -17,6 +20,9 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    first_name: Union[str, None] = None
+    last_name: Union[str, None] = None
+    date_joined: datetime
 
 
 class UserChangePass(BaseModel):

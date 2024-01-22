@@ -120,7 +120,10 @@ class AuthORM(Validator):
                         detail='User with this Email already exists'
                     )
             user.password = await self.encode(user.password)
-            result = User(**user.model_dump(exclude={'confirm_password'}))
+            result = User(
+                **user.model_dump(exclude={'confirm_password'}),
+                date_joined=datetime.utcnow()
+            )
             session.add(result)
             await session.flush()
             response = UserResponse(**result.as_dict())

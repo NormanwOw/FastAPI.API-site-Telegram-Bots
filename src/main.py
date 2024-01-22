@@ -40,7 +40,7 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
     details = exc.errors()[0]
 
     if details['type'] == 'string_pattern_mismatch':
-        details['msg'] = "Phone should match '+7(9##)#######'"
+        details['msg'] = "Phone should match '+79#########'"
         del details['ctx']
         del details['url']
 
