@@ -14,14 +14,34 @@ router = APIRouter(
 )
 
 
-@router.get('/me', response_model=UserResponse)
+@router.get('/me', response_model=UserResponse, status_code=200)
 async def me(user: Secure = Depends(get_current_user)):
     return user
 
 
-@router.patch('/')
+@router.get('/{user_id}', dependencies=[Depends(admin)], status_code=200,
+            response_model=AdmUserResponse)
+async def get_user(user_id: int):
+    user = await auth.get_user(user_id)
+    return user
+
+
+@router.get('/', dependencies=[Depends(admin)], status_code=200,
+            response_model=List[AdmUserResponse])
+async def get_users(limit: int, offset: int):
+    user_list = await users.get_users(limit, offset)
+    return user_list
+
+
+@router.patch('/', status_code=200)
 async def update_me(data: UserUpdate, user: Secure = Depends(get_current_user)):
     await users.update_user(user, schema=data)
+    return utils.SUCCESS
+
+
+@router.patch('/{user_id}', status_code=200)
+async def update_user(user_id: int, data: AdmUserUpdate, user: Secure = Depends(admin)):
+    await users.update_user(user, user_id, schema=data)
     return utils.SUCCESS
 
 
@@ -29,34 +49,6 @@ async def update_me(data: UserUpdate, user: Secure = Depends(get_current_user)):
 async def delete_me(response: Response, user: Secure = Depends(get_current_user)):
     await users.delete_user(user)
     response.delete_cookie(SITE_NAME)
-    return utils.SUCCESS
-
-
-@router.get(
-    path='/',
-    dependencies=[Depends(admin)],
-    response_model=List[AdmUserResponse],
-    status_code=200
-)
-async def get_users(limit: int, offset: int):
-    user_list = await users.get_users(limit, offset)
-    return user_list
-
-
-@router.get(
-    path='/{user_id}',
-    dependencies=[Depends(admin)],
-    response_model=AdmUserResponse,
-    status_code=200
-)
-async def get_user(user_id: int):
-    user = await auth.get_user(user_id)
-    return user
-
-
-@router.patch('/{user_id}', status_code=200)
-async def update_user(user_id: int, data: AdmUserUpdate, user: Secure = Depends(admin)):
-    await users.update_user(user, user_id, schema=data)
     return utils.SUCCESS
 
 
