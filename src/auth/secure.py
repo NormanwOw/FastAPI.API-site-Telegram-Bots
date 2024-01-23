@@ -16,6 +16,7 @@ from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH, ACCESS_TOKEN_EXPIRE_MI
 from src.session import async_session
 from src.auth.schemas import UserCreate, UserResponse, UserChangePass
 from src.auth.models import User
+from src import utils
 
 
 async def create_access_token(user_id: int) -> str:
@@ -156,6 +157,16 @@ class AuthORM(Validator):
         async with async_session() as session:
             await session.execute(
                 update(User).values(password=encoded_new_password).where(
+                    User.id == user.id
+                )
+            )
+            await session.commit()
+
+    @staticmethod
+    async def update_last_login(user: User):
+        async with async_session() as session:
+            await session.execute(
+                update(User).values(last_login=datetime.utcnow()).where(
                     User.id == user.id
                 )
             )

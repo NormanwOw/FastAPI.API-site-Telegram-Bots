@@ -1,1 +1,2 @@
 SUCCESS = {'detail': 'success'}
+

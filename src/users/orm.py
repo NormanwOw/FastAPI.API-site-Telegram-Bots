@@ -2,7 +2,6 @@ from typing import Union
 
 from sqlalchemy import select, delete, update
 from sqlalchemy.exc import IntegrityError
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException
 
 from src.session import async_session
@@ -37,14 +36,21 @@ class UsersORM:
         result_user_id = user_id or user.id
 
         async with async_session() as session:
+            user_dict = schema.model_dump()
+
+            result_dict = {}
+            for item in user_dict:
+                if user_dict[item]:
+                    result_dict[item] = user_dict[item]
             try:
                 await session.execute(
-                    update(User).values(**schema.model_dump()).where(
+                    update(User).values(**result_dict).where(
                         User.id == result_user_id
                     )
                 )
                 await session.commit()
             except IntegrityError as e:
+                print(e)
                 if '(username)' in str(e):
                     msg = 'username'
                 elif '(email)' in str(e):
