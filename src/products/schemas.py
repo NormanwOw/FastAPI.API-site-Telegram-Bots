@@ -8,6 +8,5 @@ class ProductResponse(BaseModel):
     description: str
 
 
-class Product(ProductResponse):
+class ProductResult(ProductResponse):
     id: int
-

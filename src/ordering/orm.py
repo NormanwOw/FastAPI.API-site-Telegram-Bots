@@ -5,7 +5,8 @@ from sqlalchemy import insert, select, delete
 from fastapi.exceptions import HTTPException
 
 from src.session import async_session
-from src.ordering.models import Order, Product
+from src.ordering.models import Order
+from src.products.models import Product
 from src.ordering.schemas import NewOrder, ResponseOrder
 from src.auth.models import User
 from src.tasks.tasks import send_email

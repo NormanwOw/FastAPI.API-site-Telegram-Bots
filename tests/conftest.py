@@ -54,8 +54,10 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
 @pytest.fixture
 async def set_admin():
     async with engine_test.begin() as conn:
-        stmt = update(User).where(User.email == USER).values(is_superuser=True, is_verified=True)
-
+        stmt = update(User).where(User.email == USER).values(
+            is_superuser=True,
+            is_verified=True
+        )
         await conn.execute(stmt)
         await conn.commit()
 

@@ -49,10 +49,10 @@ async def update_user(user_id: int, data: AdmUserUpdate, user: Secure = Depends(
 async def delete_me(response: Response, user: Secure = Depends(get_current_user)):
     await users.delete_user(user)
     response.delete_cookie(SITE_NAME)
-    return utils.SUCCESS
+    return
 
 
 @router.delete('/users/{user_id}', status_code=204)
 async def delete_user(user_id: int, user: Secure = Depends(admin)):
     await users.delete_user(user, user_id)
-    return utils.SUCCESS
+    return

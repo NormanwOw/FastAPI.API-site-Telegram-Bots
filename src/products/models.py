@@ -9,7 +9,7 @@ class Product(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
-    price: Mapped[str] = mapped_column(nullable=False)
+    price: Mapped[int] = mapped_column(nullable=False)
     title: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str] = mapped_column(nullable=False)
 
