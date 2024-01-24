@@ -50,7 +50,6 @@ class UsersORM:
                 )
                 await session.commit()
             except IntegrityError as e:
-                print(e)
                 if '(username)' in str(e):
                     msg = 'username'
                 elif '(email)' in str(e):

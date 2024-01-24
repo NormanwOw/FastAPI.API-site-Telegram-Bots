@@ -16,7 +16,6 @@ from src.config import SITE_NAME, ALGORITHM, SECRET_AUTH, ACCESS_TOKEN_EXPIRE_MI
 from src.session import async_session
 from src.auth.schemas import UserCreate, UserResponse, UserChangePass
 from src.auth.models import User
-from src import utils
 
 
 async def create_access_token(user_id: int) -> str:

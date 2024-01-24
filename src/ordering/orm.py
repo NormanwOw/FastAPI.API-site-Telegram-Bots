@@ -62,7 +62,7 @@ class OrdersORM:
 
             result_order['date'] = datetime.utcnow()
             result_order['email'] = user.email
-            # send_email.delay(data)
+            send_email.delay(result_order)
 
             return result_order
 

@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 from alembic.config import Config
 from redis import asyncio as aioredis
 
-load_dotenv(find_dotenv())
+load_dotenv('../.env-non-dev')
 
 
 DB_HOST = os.environ.get('DB_HOST')
