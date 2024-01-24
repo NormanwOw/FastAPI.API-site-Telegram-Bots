@@ -12,16 +12,17 @@ router = APIRouter(
 )
 
 
-@router.post('/login')
+@router.post('/login', status_code=200)
 async def login(user: UserRead, response: Response):
     valid_user = await validator.validate_user(user)
     token = await create_access_token(valid_user.id)
+    await auth.update_last_login(valid_user)
     response.set_cookie(key=SITE_NAME, value=token)
 
     return utils.SUCCESS
 
 
-@router.post('/logout', dependencies=[Depends(get_current_user)])
+@router.post('/logout', dependencies=[Depends(get_current_user)], status_code=200)
 async def logout(response: Response):
     response.delete_cookie(SITE_NAME)
     return utils.SUCCESS

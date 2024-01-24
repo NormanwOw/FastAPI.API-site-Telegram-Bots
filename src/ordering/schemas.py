@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, EmailStr
 
 
 class NewOrder(BaseModel):
-    phone_number: str = Field(pattern='^[+]7\(9[0-9]{2}\)[0-9]{7}')
+    phone_number: str = Field(pattern='^[+]79[0-9]{9}')
     admin_panel: bool
     database: bool
 

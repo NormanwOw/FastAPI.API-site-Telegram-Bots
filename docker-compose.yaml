@@ -3,10 +3,10 @@ services:
   db:
     image: postgres:16
     container_name: db_app
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     env_file:
       - .env-non-dev
+    volumes:
+      - ./setup:/setup
 
   redis:
     image: redis:7
@@ -18,12 +18,13 @@ services:
     env_file:
       - .env-non-dev
     container_name: fastapi_app
-    command: bash -c "alembic upgrade head && gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000"
+    command: bash -c "gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind=0.0.0.0:8000 && psql -U postgres -d postgres -f /app/tests/data.sql"
     ports:
       - 8000:8000
     depends_on:
       - db
       - redis
+    restart: on-failure:10
 
   celery:
     build:
@@ -47,5 +48,3 @@ services:
       - celery
     ports:
       - 8888:5555
-volumes:
-  pgdata:

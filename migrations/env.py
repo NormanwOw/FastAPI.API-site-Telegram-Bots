@@ -8,9 +8,7 @@ from alembic import context
 import os
 import sys
 
-from src.auth.models import *
 from src.session import Base
-from src.ordering.models import *
 
 from src.config import DB_HOST, DB_PORT, DB_USER, DB_NAME, DB_PASS
 

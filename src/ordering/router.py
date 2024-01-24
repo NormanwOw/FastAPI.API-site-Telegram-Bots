@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get('/', status_code=200, response_model=List[ResponseOrder])
+@router.get('/', response_model=List[ResponseOrder], status_code=200)
 async def get_orders(limit: int, offset: int, user: Secure = Depends(get_current_user)):
     order_list = await orders.get_orders(limit, offset, user)
     return order_list

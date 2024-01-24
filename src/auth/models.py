@@ -20,6 +20,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
     first_name: Mapped[str] = mapped_column(nullable=True)
     last_name: Mapped[str] = mapped_column(nullable=True)
+    date_joined: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)
 
     order = relationship('Order', back_populates='user')
 

@@ -1,9 +1,10 @@
 import os
 from dotenv import load_dotenv, find_dotenv
 
+from alembic.config import Config
 from redis import asyncio as aioredis
 
-load_dotenv(find_dotenv())
+load_dotenv('../.env-non-dev')
 
 
 DB_HOST = os.environ.get('DB_HOST')
@@ -35,3 +36,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 VERSION = 'v1'
 SITE_NAME = 'site-telegram-bots'
+
+
+alembic_cfg = Config()
+alembic_cfg.set_main_option('sqlalchemy.url', DATABASE_URL)

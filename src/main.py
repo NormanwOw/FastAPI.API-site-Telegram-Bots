@@ -8,7 +8,7 @@ from fastapi_cache.backends.redis import RedisBackend
 from src.auth.router import router as auth_router
 from src.ordering.router import router as order_router
 from src.users.router import router as users_router
-from src.admin.router import router as admin_router
+from src.products.router import router as products_router
 from src.config import VERSION, redis
 
 app = FastAPI(
@@ -32,15 +32,16 @@ app.include_router(
 )
 
 app.include_router(
-    admin_router
+    products_router
 )
+
 
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request: Request, exc: RequestValidationError):
     details = exc.errors()[0]
 
     if details['type'] == 'string_pattern_mismatch':
-        details['msg'] = "Phone should match '+7(9##)#######'"
+        details['msg'] = "Phone should match '+79#########'"
         del details['ctx']
         del details['url']
 
