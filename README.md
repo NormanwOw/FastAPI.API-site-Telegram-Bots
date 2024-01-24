@@ -5,7 +5,7 @@
 ![](https://img.shields.io/badge/Redis-v5.0-red) ![](https://img.shields.io/badge/Celery-v5.3-green) 
 ![](https://img.shields.io/badge/Flower-v2.0-red) ![](https://img.shields.io/badge/Alembic-v2.0-violet) 
 ![](https://img.shields.io/badge/Docker-blue)  
-Actual version: http://95.216.65.93:23345/api/v1/docs
+Actual version running [here](http://95.216.65.93:23345/api/v1/docs)
 ## About
 API for site Telegram-bots with Database, Cache and Task manager 
 ## Install
@@ -18,9 +18,11 @@ API for site Telegram-bots with Database, Cache and Task manager
    * `SECRET` - random string
    * `SECRET_AUTH` - random string
      
-2. `$ docker-compose up -d --build`
+2. `$ docker-compose up -d`
+3. `$ docker-compose exec db psql -U postgres -f /setup/data.dump`
 
 Interactive documentation will be here: `127.0.0.1:8000/api/v1/docs`  
 Task manager: `127.0.0.1:8888`
 ___
-![api-page](https://github.com/NormanwOw/FastAPI.API-site-Telegram-Bots/assets/118648914/2101df33-2187-498b-9042-c2d369c8a26c)
+![api](https://github.com/NormanwOw/FastAPI.API-site-Telegram-Bots/assets/118648914/5b019997-ca49-474f-bee4-180b5e859104)
+
