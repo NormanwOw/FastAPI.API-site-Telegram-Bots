@@ -1,14 +1,16 @@
 import asyncio
 from typing import AsyncGenerator
+from datetime import datetime
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from sqlalchemy import insert
 
 from src.session import get_async_session, Base
+from src.auth.models import User
 from tests.config import (DB_HOST_TEST, DB_NAME_TEST, DB_PASS_TEST, DB_PORT_TEST,
                           DB_USER_TEST)
 from src.main import app
@@ -45,9 +47,6 @@ def event_loop(request):
     loop.close()
 
 
-client = TestClient(app)
-
-
 @pytest.fixture(scope='session')
 async def ac() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(app=app, base_url='http://test') as ac:
@@ -68,4 +67,25 @@ async def authorized_client() -> AsyncGenerator[AsyncClient, None]:
             'username': 'username',
             'password': 'stringstring'
         })
+        yield ac
+
+
+@pytest.fixture(scope='session')
+async def admin() -> AsyncGenerator[AsyncClient, None]:
+    async with engine_test.begin() as conn:
+        await conn.execute(
+            insert(User).values(
+                (10, 'pbkdf2_sha256$720000$IVtwOaY2WoUoR6ks39yRyT$lRda490enZstOAkqdFD15DP'
+                    'SafQn2XyEWjtpMcZdfcg=', datetime.utcnow(),
+                 True, 'admin', 'admin@example.com', True, True, None, None,
+                 datetime.utcnow())
+            )
+        )
+
+    async with AsyncClient(app=app, base_url='http://test') as ac:
+        await ac.post('api/v1/auth/login', json={
+            'username': 'admin',
+            'password': 'stringstring'
+        })
+
         yield ac
