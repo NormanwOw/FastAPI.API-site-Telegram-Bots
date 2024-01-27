@@ -52,7 +52,7 @@ async def delete_me(response: Response, user: Secure = Depends(get_current_user)
     return
 
 
-@router.delete('/users/{user_id}', status_code=204)
+@router.delete('/{user_id}', status_code=204)
 async def delete_user(user_id: int, user: Secure = Depends(admin)):
     await users.delete_user(user, user_id)
     return

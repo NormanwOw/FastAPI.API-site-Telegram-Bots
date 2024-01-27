@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, column
 from sqlalchemy.exc import IntegrityError
 from fastapi.exceptions import HTTPException
 
@@ -34,7 +34,6 @@ class UsersORM:
             schema: Union[UserUpdate, AdmUserUpdate] = None
     ):
         result_user_id = user_id or user.id
-
         async with async_session() as session:
             user_dict = schema.model_dump()
 
@@ -43,11 +42,18 @@ class UsersORM:
                 if user_dict[item]:
                     result_dict[item] = user_dict[item]
             try:
-                await session.execute(
+                result = await session.execute(
                     update(User).values(**result_dict).where(
                         User.id == result_user_id
-                    )
+                    ).returning(column('id'))
                 )
+
+                if not result.first():
+                    raise HTTPException(
+                        status_code=404,
+                        detail='User does not exists'
+                    )
+
                 await session.commit()
             except IntegrityError as e:
                 if '(username)' in str(e):
@@ -62,10 +68,15 @@ class UsersORM:
     @staticmethod
     async def delete_user(user: User, user_id: int = None):
         async with async_session() as session:
-            result_id = user_id or user.id
-            await session.execute(
-                delete(User).where(User.id == result_id)
+            result_user_id = user_id or user.id
+            result = await session.execute(
+                delete(User).where(User.id == result_user_id).returning(column('id'))
             )
+            if not result.first():
+                raise HTTPException(
+                    status_code=404,
+                    detail='User does not exists'
+                )
             await session.commit()
 
 
