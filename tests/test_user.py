@@ -23,6 +23,30 @@ class TestUserAuth:
             'password': 'stringstring'
         })
 
+    @staticmethod
+    @pytest.mark.parametrize(
+        'pw, new_pw, code', [
+            ('stringstring', 'stringstring1', 200),
+            ('stringstring1', 'stringstring1', 422),
+            ('stringstring1', 'str', 422),
+            ('stringstring1', 'stringstring', 200),
+        ]
+    )
+    async def test_change_password(authorized_client: AsyncClient, pw, new_pw, code):
+        response = await authorized_client.post(url='api/v1/auth/change-password', json={
+            'current_password': pw,
+            'new_password': new_pw
+        })
+
+        assert response.status_code == code
+
+        if pw != new_pw:
+            response = await authorized_client.post('api/v1/auth/login', json={
+                'username': 'username',
+                'password': new_pw
+            })
+            assert response.status_code == code
+
 
 class TestUserUsers:
     @staticmethod
